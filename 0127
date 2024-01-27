@@ -1,0 +1,1459 @@
+public class ExecuteAnUpdate{
+
+  private JdbcTemplate jdbcTemplate;
+
+  public void setDataSource(DataSource dataSource){
+    this.jdbcTemplate = new JdbcTemplate(dataSource);
+  }
+
+  public void setName(int id, String name){
+    this.jdbcTemplate.update("UPDATE Person SET name = ? WHERE id = ?", name, id);
+  }
+}
+//
+final String INSERT _SQL = "insert into Person (name) values (?)";
+final String name = "Rob";
+
+KeyHolder keyHolder = new GeneratedKeyHolder();
+jdbcTemplate.update(connection -> {
+  PreparedStatement ps = connection.prepareStatement(INSERT_SQL, {"id"});
+ps.setString(1,name);
+  return ps;
+  
+  
+}, keyHolder);
+//
+DriverManagerDataSource dataSource = new DriverManagerDataSource();
+dataSource.setUrl("jdbc:mysql://localhost:3306/test");
+dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+dataSource.setUsername("sa");
+dataSource.setPassword("");
+//
+public class JdbcActorDao implements ActorDao{
+  private JdbcTemplate jdbcTemplate;
+
+  public void setDataSource(DataSource dataSource){
+    this.jdbcTemplate = new JdbcTemplate(dataSource);
+  }
+
+  public int[] batchUpdate(final List<Actor> actors){
+    return this.jdbcTemplate.batchUpdate(
+      new BatchPreparedStatementSetter(){
+        public void setValues(PreparedStatement ps, int i) throws SQLException
+        {
+          Actor actor = actors.get(i);
+          ps.setString(1, actor.getFirstName());
+          ps.setString(2, actor.getLastName());
+          ps.setLong(3, actor.getId().longValue());
+        }
+        public int getBatchSize(){
+          return actors.size();
+        }
+      });
+    
+  }
+}
+//
+public class JdbcActorDao implements ActorDao{
+  private NamedParameterTemplate namedParameterJdbcTemplate;
+
+  public void setDataSource(DataSource dataSource){
+    this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+  }
+
+  public int[] batchUpdate(final List<Actor> actors){
+    return this.namedParameterJdbcTemplate.batchUpdate(
+      "update t_actors set first_name = :firstName, last_name = :lastName 
+      where id = :id",
+      SqlParameterSourceUtil.createBatch(actors));
+    
+  }
+  
+}
+//
+public class JdbcActorDao implements ActorDao{
+  private JdbcTemplate jdbcTemplate;
+
+  public void setDataSource(DataSource dataSource){
+    this.jdbcTemplate = new JdbcTemplate(dataSource);
+  }
+  public int[] batchUpdate(final List<Actor> actors){
+    List<Object[]>batch = new ArrayList<Object>();
+  for(Actor actor : actors){
+    Object[] values  = new Object[]{
+      actor.getFirstName(), actor.getLastName(), actor.getId()};
+    batch.add(values);
+  }
+    return this.jdbcTemplate.batchUpdate(
+      "update t_actors set first_name = ?, last_name = ?, whereid = ?",
+      batch);
+  }
+  
+}
+//
+public class JdbcActorDao implements ActorDao{
+
+  private JdbcTemplate jdbcTemplate;
+
+  public void setDataSource(DataSource dataSource){
+    this.jdbcTemplate = new JdbcTemplate(dataSource);
+  }
+
+  public int[][] batchUpdate(final Collection<Actor> actors){
+    int[][]updateCounts = jdbcTemplate.batchUpdate(
+      "update t_actors set first_name = ?, last_name = ?, whereid = ?",
+      actors,
+      100,
+      (PreparedStatement ps, Actor actor) ->{
+        ps.setString(1, actor.getFirstName());
+        ps.setString(2, actor.getLastName());
+        ps.setLong(3, actor.getId().longValue());
+      });
+    return updateCounts;
+  }
+  
+}
+//
+public class JdbcActorDao implements ActorDao{
+
+  private SimpleJdbcInsertActor;
+
+  public void setDataSource(DataSource dataSource){
+    this.insertActor = new SimpleJdbcInsertActor(dataSource).withTableName("t_actors");;
+  }
+
+  public void add(Actor actor){
+  Map<String, Object> parameters = new HashMap<String, Object>(3);
+  parameters.put("id", actor.getId());
+    parameters.put("first_name", actor.getFirstName());
+    parameters.put("last_name", actor.getLastName());
+    insertActor.execute(parameters);
+  }
+  
+}
+//
+public class JdbcActorDao implements ActorDao{
+
+  private SimpleJdbcInsertActor insertActor;
+
+  public void setDataSource(DataSource dataSource){
+    this.insertActor = new SimpleJdbcInsertActor(dataSource).
+      withTableName("t_actors").
+      .usingGeneratedKeyColumns("id");
+  }
+  public void add(Actor actor){
+    Map<String, Object> parameters = new HashMap<String, Object>(2);
+    parameters.put("first_name", actor.getFirstName());
+    parameters.put("last_name", actor.getLastName());
+    Number newId = insertActor.executeAndReturnKey(parameters);
+    actor.setId(newId.longValue());
+  }
+  
+}
+//
+public class JdbcActorDao implements ActorDao{
+  private SimpleJdbcInsertActor insertActor;
+
+  public void setDataSource(DataSource dataSource){
+    this.insertActor = new SimpleJdbcInsertActor(dataSource)
+      .withTableName("t_actor")
+      .usingColumns("first_name", "last_name")
+      .usingGeneratedKeyColumns("id");
+  }
+
+  public void add(Actor actor){
+    Map<String, Object> parameters = new HashMap<String, Object>(2);
+    parameters.put("first_name", actor.getFirstName());
+    parameters.put("last_name", actor.getLastName());
+    Number newId = insertActor.executeAndReturnKey(parameters);
+    actor.setId(newId.longValue());
+  }
+  
+}
+//
+public class JdbcActorDao implements ActorDao{
+
+  private SimpleJdbcInsertActor insertActor;
+
+  public void setDataSource(DataSource dataSource){
+    this.insertActor = new SimpleJdbcInsertActor(dataSource)
+      .withinsertActor = new SimpleJdbcInsertActor(dataSource)
+      .withTableName("t_actors")
+      .usingGeneratedKeyColumns("id");
+  }
+
+  public void add(Actor actor){
+    SqlParameterSource parameters = new BeanPropertySqlParameterSource(actor);
+    Number newId = insertActor.executeAndReturnKey(parameters);
+    actor.setId(newId.longValue());
+    
+  }
+  
+}
+//
+public class JdbcActorDao implements ActorDao{
+
+  private SimpleJdbcInsertActor insertActor;
+
+  public void setDataSource(DataSource dataSource){
+    this.insertActor = new SimpleJdbcInsertActor(dataSource)
+      .withTableName("t_actors")
+      usingGeneratedKeyColumns("id");
+  }
+
+  public void add(Actor actor){
+    SqlParameterSource parameters = new MapSqlParameterSource()
+      .addValue("first_name", actor.getFirstName())
+      .addValue("last_name", actor.getLastName());
+
+    Number newId = insertActor.executeAndReturnKey(parameters);
+    actor.setId(newId.longValue());
+      }
+  
+}
+//
+CREATE PROCEDURE read_actor(
+  IN in_id INTEGER,
+  OUT out_first_name VARCHAR(100),
+  OUT out_last_name VARCHAR(100)
+  OUT out_birth_date DATE)
+  BEGIN
+  SELECT first_name, last_name, birth_date
+  INTO out_first_name, out_last_name, out_birth_date
+  FROM t_actors where if_ in_id;
+END;
+//
+public class JdbcActorDao implements ActorDao{
+
+  private SimpleJdbcCall proReadActor;
+
+  public void setDataSource(DataSource dataSource){
+    this.procReadActor = new SimpleJdbcCall(dataSource)
+      .withProcedureName("read_actor")
+  }
+
+  public Actor readActor(Long id){
+    SqlParameterSource in = new MapSqlParameterSource()
+      .addValue("in_id", id);
+    Map out = procReadActor.execute(in);
+    Actor actor = new Actor();
+    actor.setId(id);
+    actor.setFirstName((String)out.get("first_name"));
+    actor.setLastName((String)out.get("last_name"));
+    actor.setBirthDate((Date)out.get("birth_date"));
+    return actor;
+  }
+  
+}
+//
+public class JdbcActorDao implements ActorDao
+
+  private SimpleJdbcCall procReadActor;
+
+public void setDataSource(DataSource dataSource){
+  JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+jdbcTemplate.setResultMapCaseInsensitive(true);
+this.procReadActor = new SimpleJdbcCall(jdbcTemplate)
+  .withProcedureName("read_actor");
+}
+
+}
+//
+
+public class JdbcActorDao implements ActorDao{
+
+  private SimpleJdbcCall procReadActor;
+
+  public void setDataSource(DataSource dataSource){
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    jdbcTemplate.setResultMapCaseInsensitive(true);
+    this.procReadActor = new SimpleJdbcCall(jdbcTemplate)
+      .withProcedureName("read_actor")
+      .withoutProcedureColumnMetaDataAccess()
+      .useInParameterNames("in_id")
+      .declareParameters(
+        new SqlParameter("in_id", Types.NUMERIC),
+        new SqlOutParameter("out_first_name", Types.VARCHAR),
+        new SqloutParameter("out_last_name", Types.VARCHAR),
+        new SqlOutParameter("out_birth_date", Types.DATE)
+      );
+  }
+  
+}
+//
+new SqlParameter("in_id", Types.NUMERIC),
+new SqlOutParameter("out_first_name", Types.VARCHAR"),
+
+//
+  CREATE FUNCTION get_actor_name(in_id INTEGER)
+  RETURNS VACHAR(200) READS SQL DATA
+  BEGIN 
+  DECLARE. out_name VARCHAR(200);
+SELECT concat(first_name, ' ', last_name)
+  INTO out_name
+  FROM t_actor where id = in_id;
+RETURN out_name;
+END;
+//
+public class JdbcActorDao implements ActorDao{
+
+  private SimpleJdbcCall funcGetActorName;
+
+  public void setDataSource(DataSource dataSource){
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    jdbcTemplate.setResultMapCaseInsensitive(true);
+    this.funcGetActorName = new SimpleJdbcCall(jdbcTemplate)
+      .withFunctionName("get_actor_name");
+  }
+
+  public String getActorName(Long id){
+    SqlParameterSource in = new MapSqlParameterSource()
+      .addValue("in_id", id);
+    String name = funcGetActorName.executeFunction(String.class, in);
+  return name;
+  }
+  
+}
+//
+CREATE PROCEDURE read_all_actors()
+  BEGIN
+  SELECT a.id a.first_name, a.last_name, a.birth_date FROM t_actors a;
+END;
+//
+public class JdbcActorDao implements ActorDao{
+
+  private SimpleJdbcCall procReadAllActors;
+
+  public void setDataSource(DataSource dataSource){
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    jdbcTemplate.setResultMapCaseInsensitive(true);
+    this.procReadAllActors = new SimpleJdbcCall(jdbcTemplate)
+      .withProcedureName("read_all_actors");
+      .returningResultSet("actors",
+                         BeanPropertyRowMapper.newInstance(Actor.class));
+    }
+  public List getActorsList(){
+    Map m = procReadAllActors.execute(new HashMap<String, Object>(0));
+    return (List) m.get("actors");
+  }
+  
+}
+//
+public class ActorMappingQuery extends MappingSqlQuery<Actor>{
+
+  public ActorMappingQuery(DataSource dataSource){
+    super(dataSource, "select id, first_name, last_name from t_actor where id = ?");
+    declareParameter(new SqlParameter("id", Types.INTEGER));
+  compile();
+  }
+
+  @Override
+  protected Actor mapRow(ResultSet rs, int rowNum) throws SQLException{
+    Actor actor = new Actor();
+    actor.setId(rs.getLong("id"));
+    actor.setFirstName(rs.getString("first_name"));
+    actor.setLastName(rs.getString("last_name"));
+    return actor;
+  }
+}
+//
+private ActorMappingQuery actorMappingQuery;
+
+@Autowired
+  public void setDataSource(DataSource dataSource){
+  this.actorMappingQuery = new ActorMappingQuery(dataSource);
+  }
+public Customer getCustomer(Long id){
+  return actorMappingQuery.findObject(id);
+  
+}
+//
+public List<Actor> searchForActors(int age, String namePattern){
+  List<Actor>actors = actorMappingQuery.execute(age, namePattern);
+return actors;
+}
+//
+public class UpdateCreditRating extends SqlUpdate{
+
+  public UpdateCreditRating(DataSource dataSource){
+    setDataSource(ds);
+    setSql("update t_customer set credit_rating = ? where id = ?");
+    declareParameter(new SqlParameter("credit_rating", Types.NUMERIC));
+    declareParameter(new SqlParameter("id", Types.NUMERIC));
+    compile();
+  }
+  public int execute(int id, int rating){
+    return update(rating, id);
+  }
+}
+//
+new SqlParameter("in_id", Types.NUMERIC ),
+new SqloutParameter("out_first_name", Types.VARCHAR),
+//
+  public class StoredProcedureDao{
+
+  private GetSysdateProcedure getSysDate;
+  
+@Autowired
+  public void init(DataSource dataSource){
+    this.getSysDate = new GetSysdateProcedure(dataSource)
+  }
+
+  public Date getSysDate(){
+    return getSysdate.execute();
+  }
+
+  private class GetSysdateProcedure extends StoredProcedure{
+
+    private static final String SQL = "sysdate";
+
+    public GetSysdateProcedure(DataSource dataSource){
+      setDataSource(dataSource);
+      setSql(SQL);
+      setFunction(true);
+      declareParameter(new SqlParameter("date", Types.DATE));
+    compile();
+   }
+  
+  public Date execute(){
+    Map<String, Object>results = execute(new Hash<String, Object>());
+    Date sysdate = (Date) results.get("date");
+    return sysdate;
+  }
+}
+}
+//
+public class TitlesAndGernesStoredProcedure extends StoredProcedure{
+
+  private static final String SPROC_NAME = "AllTitlesAndGenres";
+
+  public TitlesAndGernesStoredProcedure(DataSource dataSource){
+    super(dataSource, SPROC_NAME);
+    declareParameter(new SqlOutParameter("titles", OraceleTypes.CURSOR, new
+                                        TitleMapper()));
+  declareParameter(new SqlOutParameter("genres", OracleTypes.CURSOR, new
+                                      GenreMapper()));
+    compile();
+  }
+
+  public Map<String, Object>execute(){
+
+    return super.execute(new HashMap<String, Object>());
+    
+  }
+}
+//
+public final class TitleMapper implements RowMapper<Title>{
+
+  public Title mapRow(ResultSet rs, int rowNum) throws SQLException{
+    Title title = new Title();
+    title.setId(rs.getLong("id"));
+    title.setName(rs.getString("name"));
+    return title;
+  }
+}
+//
+public final class GenreMapper implements RowMapper<Genre>{
+
+  public Genre mapRow(ResultSet rs, int rowNum) throws SQLException{
+    return new Genre(rs.getString("name"));
+  }
+}
+//
+public class TitlesAndGenresStoredProcedure extends StoredProcedure{
+
+  private static final String SPROC_NAME = "TitlesAfterDate";
+  private static final String CUTOFF_DATE_PARAM = "cutoff_Date";
+
+  public TitlesAndGenresStoredProcedure(DataSource dataSource){
+    super(dataSource, SPROC_NAME);
+    declareParameter(new SqlParameter(CUTOFF_DATE_PARAM, Types.DATE));
+    declareParameter(new SqlOutParameter("titles", Types.CURSOR, new TitleMapper()));
+    compile();
+  }
+
+  public Map<String, Object> execute(Date cutoffDate){
+    Map<String, Object> inputs = new HastMap<String, Object>();
+    inputs.put(CUTOFF_DATE_PARAM, cutoffDate);
+    return super.execute(inputs);
+  }
+}
+//
+
+jdbcTemplate.execute(
+  "INSERT INTO lob_table(id, a_clob, a_blob) VALUES (?, ?, ?)",
+  new AbstractLobCreatingPreparedStatementCallback(lobHandler){
+    protected void setValues(PreparableStatement ps, LobCraete lobCreator) 
+    throws SQLException{
+      ps.setLong(1, 1);
+      lobCreator.setClobAsCharacterStream(ps, 2, clobReader,
+                                         (int)clobIn.length());
+    lobCreator.setBlobAsBinaryStream(ps, 3, blobReader, (int)blobIn.length());
+    }
+  }
+);
+blobIs.close();
+clobReader.close();
+//
+List<Map<String, Object>> l = jdbcTemplate.query("select id, a_clob, 
+        a_blob from lob_table", 
+  new RowMapper<Map<String, Object>>(){
+  public Map<String, Object> mapRow(ResultSet rs, int i) throws SQLException{
+  String clobText = lobHandler.getClobAsString(rs, "a_clob");
+  results.put("CLOB", clobText);
+  byte[] blobBytes = lobHandler.getBlobAsBytes(rs, "a_blob");
+  results.put("BLOB", blobBytes);
+  return results;
+  }
+  });
+//
+public class TestItemStoredProcedure extends StoredProcedure{
+
+  public TestItemStoredProcedure(DataSource dataSource){
+
+    declareParameter(new SqlParameter("item", OracleTypes.STRUCT, "ITEM_TYPE",
+         STRUCT struct = (STRUCT) cs.getObject(colIndx);
+         Object[] attr = struct.getAttributes();
+    TestItem item = new TestItem();
+    item.setId(((NUmber) attr[0]).longValue());
+    item.setDescription((String) attr[1]);
+    item.setExpirationDate((java.util.Date) attr[2]);
+    
+    return item;
+  }));
+}
+//
+final TestItem testItem = new TestItem(123L, "A test item",
+       new SimpleDateFormat("yyyy-MM-dd"").parse("2023-01-01"));
+
+SqlTypeValue value = new AbstractSqlTypeValue(){
+  protected Object createTypeValue(Connect conn, int sqlType, String typeName)
+  throws SQLException{
+    StructDescriptor itemDescriptor = new StructDescriptor(typeName, conn);
+    Struct item = new STRUCT(itemDescriptor, conn,
+                            new Object[]{
+                              testItem.getId(),
+                              testItem.getDescription(),
+                              new java.sql.Date(testItem.getExpirationDate().getTime())
+                            });
+    return item;
+  }
+};
+//
+final Long[] ids = new Long[] {1L, 2L};
+
+SqlTypeValue value = new AbstractSqlTypeValue(){
+  protected Object createTypeValue(Connect conn, int sqlType, String typeName)
+  throws SQLException{
+    ArrayDescriptor arrayDescriptor = new ArrayDescriptor(typeName, conn);
+    ARRAY idArray = new ARRAY(arrayDecriptor, conn, ids);
+    return idArray;
+  }
+};
+//
+EmbeddedDatebase db = new EmbeddedDatabaseBuilder()
+  .generateUniqueName(true)
+  .setType(H2)
+  .setScriptEncoding("UTF-8")
+  .ignoreFailedDrops(true)
+  .addScript("schema.sql")
+  .addScripts("user_data.sql", "country_data.sql")
+  .build();
+
+db.shutdown()
+  //
+  @Configuration
+  public classDataSourceConfig{
+
+  @Bean
+    public DataSource dataSource(){
+    return new EmbbededDatabaseBuilder()
+      .generateUniqueName(true)
+      .setType(H2)
+      .ignoreFailedDrops(true)
+      .addScript("schema.sql")
+      .addScripts("user_data.sql", "country_data.sql")
+      .build();
+    }
+  }
+//save 1
+
+public class DataAccessIntegrationTestTemplate{
+
+  private EmbeddedDatabaseBuilder db;
+
+  @BeforeEach
+  public void setUp(){
+
+    db = new EmbeddedDatabaseBuilder()
+      .generateUniqueName(true)
+      .addDefaultScripts()
+      .build();
+  }
+  @Test
+  public void testDataAccess(){
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
+    template.query(/**/);
+  }
+  @AfterEach
+  public void tearDown(){
+    db.shutdown();
+  }
+}
+//
+DatabaseClient client = DatabaseClient.create(connectionFactory);
+//
+Mono<Void>completion = client.sql("CREATE TABLE persom (id VATCHAR(255) PRIMARY KEY, 
+                                  name VARCHAR(255, age INTEGER);")
+.then();
+//
+Mono<Map<String, Object>> first = client.sql("SELECT * FROM person ")
+  .fetch().first();
+//
+Mono<Map<String, Object>> first = client.sql("SELECT id, name FROM person WHERE
+                                             first_name = :fn" )
+.bind("fn", "Joe")
+  .fetch().first();
+//
+Flux<String> names = client.sql("SELECT name FROM person")
+  .map(row -> row.get("name", String.class))
+  .all();
+//
+Mono<Integer> affectedRows = client.sql("UPDATE person SET first_name = :fn ")
+  .bind("fn", "Joe")
+  .fetch().rowUpdated();
+//
+List<Object[]> tuples = new ArrayList<>();
+tuples.add(new Object[]{"John", 35});
+tuples.add(new Object[] {"Ann", 50});
+
+client.sql("SELECT id, name, state FROM table WHERE (name, age) IN (: tuples)")
+  .bind("tuples", tuples);
+//
+client.sql("SELECT id, name, state FROM table WHERE age IN (:ages)")
+  .bind("ages", Arrays.asList(35, 50));
+//
+client.sql("INSERT INTO table(name, state) VALUES (:name, :state)")
+  .filter((s,next) -> next.execute(s.returnGeneratedValues("id")))
+  .bind("name",...)
+  .bind("state", ...);
+//
+client.sql("INSERT INTO table(name, state) VALUES (:name, :state)")
+  .filter(statement -> s.returnGeneratedValues("id"));
+
+client.sql("SELECT id, name, state FROM table ")
+  .filter(statement -> s.fetchSize(25));
+
+//
+public class R2dbcCorporateEventDao implements CorporateEventDao{
+
+  private DatabaseClient databaseClient;
+
+  public void setConnectionFactory(ConnectionFactory connectionFactory){
+    this.databaseClient = DatabaseClinet.create(connectionFactory);
+  }
+}
+//
+@Component
+  public class R2dbcCorporateEventDao implements CorporateEventDao{
+
+    private DatabaseClient databaseClient;
+
+    @Autowired
+    public void setConnectionFactory(ConnectionFactory connectionFactory){
+      this.databaseClient = DatabaseClient.create(connectionFactory);
+      
+    }
+  }
+//
+Mono<Integer> generatedId = client.sql("INSERT INTO person (name, state) VALUES (:name, :state)")
+  .filter(statement -> s.returnGeneratedValues("id"))
+  .map(row -> row.get("id", Integer.class))
+  .first();
+
+//
+ConnectionFactory factory = 
+  ConnectionFactroies.get("r2dbc-h2:mem:///test?options=DB_CLOSE_DELAY-=
+                          1;DB_CLOSE_ON_EXIT=FALSE");
+//
+@Repository
+  public class ProductDaoImpl implements ProductDao{
+    
+  }
+//
+public class ProductDaoImpl implements ProductDao{
+
+  private SessionFactory sessionFactory;
+
+  public void setSessionFactory(SessionFactory sessionFactory){
+    this.sessionFactory = sessionFactory;
+  }
+  public Collection loadProductsByCategory(String category){
+    return this.sessionFactory.getCurrentSession()
+      .createQuery("from test.Product product where product = :category=?")
+      .setParameter(0, category)
+      .list();
+  }
+}
+//
+public class ProductServiceImpl implements ProductService{
+
+  private ProductDao productDao;
+
+  public void setProducDao(ProductDao productDao){
+    this.productDao = productDao;
+  }
+
+  @Transactional
+  public void increasePriceOfAllProductsInCategory(final String category){
+    List productsToChange = this.productDao.loadProductsByCategory(category);
+  }
+
+  @Transactional(readOnlt = true)
+  public List<Product> findAllProducts(){
+  return this.productDao.findAllProducts();
+}
+}
+//
+public class ProductServiceImpl implements ProductService{
+
+  private TransactionTemplate transactionTemplate;
+  private ProductDao productDao;
+
+  public void setTransactionManager(PlatformTransactionManager transactionManager){
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
+  }
+  public void setProductDao(ProductDao productDao){
+    this.productDao = productDao;
+  }
+
+  public void increasePriceOfAllProductsInCategory(final String category){
+    this.transactionTemplate.execute(new TransactionCallbackWithoutResult(){
+      public void doInTransactionWithoutResult(TransactionStatus status){
+        List productsToChange = 
+          this.productDao.loadProductsByCategory(category);
+        
+      }
+    });
+  }
+}
+//
+public class ProductDaoImpl implements ProductDao{
+  private EntityManagerFactory emf;
+
+  @PersistenceUnit
+  public void setEntityManagerFactory(EntityManagerFactory emf){
+    this.emf = emf;
+    
+  }
+  public Collection loadProductsByCategory(String category){
+    EntityManager em  = this.emf.createEntityManager();
+    try{
+      Query query = em.createQuery("from Product as  product where p.category = ?1");
+      query.setParameter(1,category);
+      return query.getResultList();
+    }
+    finally{
+      if(em != null){
+        em.close();
+      }
+    }
+  }
+}
+//
+public class ProductDaoImpl implements ProductDao{
+
+  @PersistenceContext 
+  private EntityManager em;
+
+
+  public Collection loadProductsByCategory(String category){
+    Query query = em.createQuery("from Product as  product where p.category = 
+      :category");
+  query.setParameter("category", category);
+    return query.getResultList();
+  }
+}
+//
+public interface Marshaller{
+
+  void marshal(Object graph, Result result) throws Xml MappingException, IOException;
+}
+//
+
+public interface Unmarshaller{
+
+  Object unmarshal(Source source) throws XmlMappingException, IOException;
+  
+}
+//
+public class Settings{
+
+  privaet boolean fooEnabled;
+
+  public boolean isFooEnabled(){
+    return fooEnabled;
+  }
+  public void setFooEnabled(boolean fooEnabled){
+    this.fooEnabled = fooEnabled;
+  }
+}
+//
+public class Application{
+
+private static final String FILE_NAME = "settings.xml";
+private Settings settings = new Settings();
+  private Marshaller marshaller
+  private Unmarshaller unmarshaller;
+
+  public void setMarshaller(Marshaller marshaller){
+    this.marshaller = marshaller;
+  }
+
+  public void setUnmarshaller(Unmarshaller unmarshaller){
+    this.unmarshaller = unmarshaller;
+  }
+
+  public void saveSettings() throws IOException{
+    try(FileOutputStream os  = new FileOutputStream(FILE_NAME)){
+      this.marshaller.marshal(this.settings, new StreamResult(os));
+    }
+  }
+
+  public void loadSettings() throws IOException{
+    try(FileOutputStrean os = new FileOutputStream(FILE_NAME)){
+      this.marshaller.marshal(setting, new StreamResult(os));
+    }
+  }
+  public void loadSettings() throws IOException{
+    try(FileInputStrean is = new FileInputStream(FILE_NAME)){
+      this.settings = (Settings) this.unmarshaller.unmarshal(new 
+      StreamSource(is));
+    }
+  }
+
+  public static void main(String[] args) throws IOException{
+    ApplicationContext appContext = 
+      new ClassPathXmlApplicationContext("app.xml");
+    Application app = (Application)appContext.getBean("application");
+  application.saveSettings();
+    application.loadSettings();
+  }
+                      }
+
+//Chapter 5. Web on Servlet Stack
+public class MyWebApplicationInitializer implements WebApplicationInitializer{
+
+  @Override
+  public void onStartup(ServletContext servletContext){
+
+    AnnotationConfigWebApplicationContext ctx = 
+      new AnnotationConfigWebApplicationContext();
+    context.register(AppConfig.class);
+
+    DispatcherServlet servlet = new DisPatcherServlet();
+    ServletRegistration.Dynamic registration = servletContext.addServlet("app", 
+                                                                         servlet);
+  registration.setLoadOnStartup(1);
+    registration.addMapping("/app/*");
+  }
+}
+//
+public class MyWebAppIniializer extends
+  AbstractAnnotationConfigDispatcherServletInitializer{
+
+
+  @Override
+  protected Class<?>[] getRootConfigClasses(){
+     return new Class<?>[]  {RootConfig.class};
+  }
+
+  @Override
+  protected Class<?> []getServletConfigClasses(){
+    return new Class<?>[] {AppConfig.class};
+  }
+
+  @Override
+  protected String[] getServletMappings(){
+    return new String[] {"/app1/*"};
+  }
+}
+//
+public class MyWebApplicationInitializer implement WebApplicationInitializer{
+
+  @Override
+    public void onStartup(ServletContext container){
+    XmlWebApplicationContext appctx = new XmlWebApplicationContext();
+  appContext.setConfigLocation("classpath:app.xml");
+
+  ServletRegistration.Dynamic registration = container.addServlet("dispatcher",
+                                                                  new DispatcherServlet(appContext));
+  registration.setLoadOnStartup(1);
+  registration.addMapping("/");
+    }
+}
+//
+public class MyWebAppInitializer extends
+  AbstractAnnotationConfigDispatcherServletInitializer{
+
+  @Override
+  protected Class<?>[] getRootConfigClasses(){
+    return null;
+  }
+
+  @Override
+  protected Class<?>[] getServletConfigClasses(){
+    return new Class<?>[] {MyWebConfig.class};
+  }
+
+  @Override
+  protected String[] getServletMappings(){
+    return new String[]{"/"};
+  }
+  }
+//
+public class MyWebAppInitializer extends AbstractDispatcherServletInitializer{
+
+  @Override
+  protected WebApplicationContext createRootApplicationContext(){
+    return null;
+  }
+
+  @Override
+  protected WebApplicationContext createServletApplicationContext(){
+    XmlWebApplicationContext cxt = new XmlWebApplicationContext();
+    cxt.setConfigLocation("/WEB-INF/app.xml");
+    return cxt;
+  }
+  @Override
+  protected String[] getServletMappings(){
+    return new String{} {"/"};
+  }
+}
+//
+public class MyWebAppInitializer extends AbstractDispatcherServletInitializer{
+
+  @Override
+  protected Filter[] getServletFilters(){
+    return new Filter[]{
+      new HiddenHttpMethodFilter(), new CharacterEncodingFilter()};
+    }
+  }
+//
+@RestController
+  public class ErrorController{
+
+    @RequestMapping(path = "/error")
+    public Map<String, Object> handle(HttpServletRequest request){
+      Map<String, Object> map = new HashMap<Spring, Object>();
+      map.put("status", request.getAttribute("jakarta.servlet.error.status_code"));
+      map.put("reason", request.getAttribute("jakarta.servlet.error.message"));
+      return map;
+      
+    
+    }
+  }
+//
+public class AppInitialzer extends 
+  AbstractAnnotationConfigDispatcherServletInitializer{
+
+  @Override 
+  protected void customizeRegistration(ServletRegistration.Dynamic registration){
+
+  registration.setMultipartConfig(new MultipartConfigElement("/tmp"));
+}
+  }
+
+//
+public class MyInitializer
+  extends AbstractAnnotationConfigDispatcherServletInitializer{
+
+    @Override
+    protected Class<?>[] getRootConfigClasses(){
+      return ...;
+    }
+
+    @Override
+    protected Class<?>[] getServletConfigClasses(){
+      return ...;
+    }
+
+    @Override
+    protected String[] getServletMappings(){
+      return...;
+    }
+
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration){
+      registration.setInitParameter("enableLoggingRequestDetails", "true");
+      
+    }
+  }
+//
+@Controller
+  public class HelloController{
+
+    @GetMapping("/hello")
+    public String handle(Model model){
+      model.addAttribute("message", "Hello World");
+      return "index";
+    }
+  }
+//
+@Configuration
+  @ComponentScan("org.example.web")
+  public class WebConfig{
+    
+  }
+//
+@RestController
+  @RequestMapping("/persons")
+  class PersonController{
+
+    @GetMapping("/{id}")
+  public Person getPerson(@PathVariable Long id){
+    
+  }
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public void add(@RequestBody Person Person){
+      
+    }
+  
+  }
+//
+@GetMapping("/owners/{ownerId}/pets/{petId}")
+  public Pet findPet(@PathVariable Long ownerId, @PathVariable("petId") Long petId){
+  
+  
+}
+//
+@Controller
+  @RequestMapping("/owners/{ownerId}")
+  public class OwnerController{
+
+    @GetMapping("/pets/{petId}")
+    public Pet findPet(@PathVariable Long ownerId, @PathVariable Long petId){
+      
+    }
+  }
+//
+@GetMapping("/{name]:[a-z-]+}-{version:\\d\\.\\d\\.\\d}{ext:\\.[a-z]+")
+  public void handle(@PathVariable String name, @PathVariable String version, 
+                     @PathVariable String ext){
+  
+                     }
+//884P
+@PostMapping(path = "/pets", consumes = "application/json")
+  public void addPet(@RequestBody Pet pet){
+  
+  }
+//
+@GetMapping(path = "/pets/{petId}", produces = "application/json")
+  @ResponseBody
+  public Pet getPet(@PathVariable String petId){
+  
+  }
+//
+@GetMapping (path = "/pets/{petId}",params = "myParam=myValue")
+public void findPet(@PathVariable String petId){
+  
+}
+//
+@GetMapping(path = "/pets/{petId}", headers = "myHeader=myValue")
+  public void findPet(@PathVariable String petId){
+  
+  }
+//
+@Configuration
+  public class MyConfig{
+
+    @Autowired
+    public void setHandlerMapping(RequestMappingHandlerMapping mapping, 
+                                 UserHandler handler)
+    throws NoSuchMethodException{
+
+      RequestMappingIndo info = RequestMappingInfo
+        .paths("/users/{id}"").methods(RequestMethod.GET).build();
+    
+    Method method = UserHandler.class.getMethod("getUser", Long.class);
+
+      mapping.registerMapping(info, handler, method);
+    }
+  }
+//
+GetMapping("/pets/{petId}")
+  public void findPet(@PathVariable String petId, @MatrixVariable int q){
+  
+  }
+//
+@GetMapping("/owners/{ownerId}/pets/{perId}")
+
+  public void findPet(
+  @MatrixVariable(name="q", pathVar = "ownerId")int q1,
+  @MatrixVariable(name="q", pathVar = "petId")int q2){
+  
+  }
+  //
+@GetMapping("/pets/{petId}")
+  public void findPet( @MatrixVariable (required=false, defaultValue="1")int q){
+
+  
+  }
+//
+GetMapping("/owners/{ownerId}/pets/{petId}")
+  public void findPet(
+  @MatrixVariable MultiValueMap<String, String> matrixVars,
+  @PathVariable (pathVar = "petId")MultiValueMap<String, String> petMatrixVars)
+  
+  {
+  
+  }
+//
+@Controller
+  @RequestMapping("/pets")
+  public class EditPetForm{
+
+    @GetMapping
+    public String setupForm(@RequestParam("petId") int petId, Model model){
+      Pet pet = this.clinic.loadPet(petId);
+      model.addAttribute("pet", pet);
+      return "petForm";
+    }
+  }
+//
+@GetMapping("/demo")
+  public void handle(
+  @RequestHeader("Accept-Encoding") String encoding,
+  @RequestHeader("Keep-Alive")long keepAlive){
+  
+  }
+//
+@GetMapping("/demo")
+  public void handle (@CookieValue("JSESSIONID")String cookie){
+  
+  }
+//
+@PostMapping("/owners/{ownerID}/pets/{petId}/edit")
+  public String processSubmit(@ModelAttribute Pet pet){
+  
+  
+}
+//
+@PutMapping("/accounts/{account}")
+  public String save (@ModelAttribute("account")Account account){
+  
+  }
+//
+@PostMapping("/owners/{ownerId}/pets/{petId}/edit")
+  public String processSubmit(@ModelAttribute ("pet") Pet pet, BindingResult result){
+  if(result.hasErrors()){
+    return "petForm";
+  }
+  }
+//
+@ModelAttribute
+  public AccountForm setUpForm(){
+  return new AccountForm();
+  }
+
+@ModelAttribute
+  public Account findAccount(@PathVariable String accountId){
+  return accountRepository.findOne(accountid);
+  }
+@PostMapping("update")
+  public String update (@Valid AccountForm form, BindingResult result,
+                       @ModelAttribute(binding=false)Account account){
+  
+                       }
+//903
+
+@PostMapping("/owners/{ownerId}/pets/{petId}/edit")
+  public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result)
+  {
+  if(result.hasErrors())}{
+    return "petForm";
+  }
+  }
+//
+@Controller
+  @SessionAttributes"pet")
+  public class EditPetForm
+  {
+    
+  }
+//
+@Controller
+  @SessionAttributes("pet")
+  public class EditPetForm{
+
+    @PostMapping("/pets/{id}")
+  public String handle(Pet pet, BindingResult errors, SessionStatus status){
+    if(errors.hasErrors){
+      
+    }
+    status.setComplete();
+  }
+  
+  }
+//
+@RequestMapping()
+  public String handle(@SessionAttribute User user){
+  
+  }
+//
+@GetMapping
+  public String handle(@RequestAttribute Client client){
+  
+  }
+//
+@PostMapping("/files/{path}")
+  public String upload(...){
+
+  return :"redirect:files/{path}";
+  }
+//
+@Controller
+  public class FileUploadController{
+
+    @PostMapping("/form")
+    public String handleFormUpload(@RequestParam("name") String name,
+                                   @RequestParam("file") MultipartFile file){
+
+      if(!file.isEmpty()){
+        byte[] bytes = file.getBytes();
+
+        return "redirect:uploadSuccess" ;
+      }
+      return "redirect:uploadFailure";
+                                   }
+  }
+//
+class MyForm{
+  private String name;
+
+  private MultipartFile file;
+  
+}
+
+@Controller
+  public class FileUploadController{
+
+    @PostMapping("/form")
+    public String handleFormUpload(MyForm form, Binding Result errors){
+      if(!form.getFile().isEmpty()){
+        byte[] bytes = form.getFile().getBytes();
+
+        return "redirect:uploadSuccess";
+      }
+      return "redirect:uploadFailure";
+    }
+  }
+//
+@PostMapping("/")
+  public String handle(@RequestParam("meta-data") MetaData metadata,
+                       @RequestParam("file-data") MultipartFile file){
+  
+                       }
+//
+@PostMapping("/")
+  public String handle(@Valid @RequestPart("meta-data"") MetaData metadata,
+                      BindingResult result){
+  
+                      }
+//
+@PostMapping("/accounts")
+  public void handle(@RequestBody Account account){
+  
+  
+}
+//
+@PostMapping("/accounts")
+  public void handle(@RequestBody Account account, BindingResult result){
+  
+  }
+  //
+  @PostMapping("/accounts")
+  public void handle(HttpEntity<Account>entity){
+  
+  }
+
+//
+@GetMapping("/accounts/{id}")
+  @ResponseBody
+  public Account handle(){
+  
+  }
+//
+@GetMapping("/something")
+  public ReponseEntity<String> handle()
+  String body = ...;
+String etag = ...;
+return ResponeEntity.ok()eTag(etag)body.(body);
+}
+//
+
+@RestController
+  public class UserController{
+
+    @GetMapping("/user")
+    @JsonView(User.WithoutPasswordView.class)
+    public User getUser(){
+      return new User("eric", "7!jd#h23");
+      
+    }
+  
+  }
+public class User{
+
+  public interface WithoutPasswordView{};
+  public interface WithPasswordView extends WithPasswordView{};
+
+private String name;
+  private String password;
+
+  public User(){
+    
+  }
+
+  public User(String username, String password){
+    this.username = username;
+    this.password = password;
+  }
+  @JsonView(WithoutPasswordView.class)
+  public String getUsername(){
+    return this.username;
+  }
+
+  @JsonView(WithPasswrodView.class)
+  public String getPassword(){
+    return this.password;
+  }
+}
+//
+@RestController
+  public class UserController{
+
+    @GetMapping("/user")
+  public MappingJacksonValue getUser(){
+    User user = new User("eric", "7!jd#h23");
+    MappingJacksonValue value = new MappingJacksonValue(user);
+    value.setSerializationView(User.withoutPasswordView.class);
+    return value;
+  }
+  
+  
+  }
+//
+@Controller
+public class UserController extends AbstractController{
+
+  @GetMapping("/user")
+  public String getUser(Model model){
+    model.addAttribute("user", new User("eric", "7!jd#h23"));
+    model.addAttribute(JsonView.class.getName(), User.withoutPasswordView.class);
+  return "userView";
+  }
+}
+//
+@ModelAttribute
+  public void populateModel(@RequestParam String number, Model model){
+  model.addAttribute(accountRepository.findAccount( number));
+  }
+//
+@ModelAttribute
+  public Account addAccount(@RequestParam String number){
+  return accountRepository.findAccount(number);
+  }
+//
+@GetMapping("/accounts/{id}")
+  @ModelAttribute("myAccount")
+  public Account handle(){
+
+  return account;
+  
+}
+
+//
+@Controller
+  public class FormController{
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder){
+      SimpleDataFormat dateFormat = new SimepleDataFormat("yyyy-MM-dd");
+      dateFormat.setLenient(false);
+      binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+    }
+  }
+//
+@Controller
+  public class FormController{
+
+    @InitBinder
+    protected void initBinder(WebDataBinder binder){
+      binder.addCustomFormatter(new DateFormatter("yyyy-MM-dd"));
+    }}
+
+//
+public class ChangeEmailForm{
+
+  private String oldEmailAddress;
+  private String newEmailAddress;
+
+  public void setOldEmailAddress(String oldEmailAddress){
+    this.oldEmailAddress = oldEmailAddress;
+  }
+  public String getOldEmailAddress(){
+    return this.oldEmailAddress;
+  }
+  public void setNewEmailAddress(String newEmailAddress){
+    this.newEmailAddress = newEmailAddress;
+  }
+  public String getNewEmailAddress(){
+    return this.newEmailAddress;
+  }
+}
+//
+@Controller
+  public class ChangeEmailController{
+
+    @InitBinder
+    void initBinder(WebDataBinder binder){
+
+      binder.setAllowedFields("oldEmailAddress", "newEmailAddress"");
+      
+    }
+    
+  }
+//
+@Controller
+  public class SimpleController{
+
+    @ExceptionHandler
+    public ResponseEntity<String> handle(IOException ex){
+      
+    }
+  }
+//
+@ExceptionHandler({FileSystemException.class, RemoteException.class})
+public ResponseEntity<String> handle(IOException ex){
+  
+}
+  //
+  @ExceptionHandler({FileSystemException.class, RemoteException.class})
+  public ResponseEntity<String>handle(Exception ex){
+  
+  
+  }
+  //
+  
+  @ControllerAdvice(annotations = RestController.class)
+  public class ExampleAdvice1 {}
+
+@ControllerAdvice("org.example.controllers")
+  public class ExampleAdvice2 {}
+
+@ControllerAdvise(assignableTypes = {ControllerInterface.class,
+                    AbstractControll.class})
+  public class ExampleAdvice3 {}
+//931P
